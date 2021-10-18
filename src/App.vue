@@ -1,8 +1,8 @@
 <template>
   <div id="app">
-    <el-menu :default-active="activeIndex" mode="horizontal" router>
-      <el-menu-item index="home" :route="{ name: 'Home' }">Home</el-menu-item>
-    </el-menu>
+    <div class="pl-5 pt-3 text-left text-3xl">
+      <h1>蔵書検索サイト</h1>
+    </div>
     <router-view />
   </div>
 </template>

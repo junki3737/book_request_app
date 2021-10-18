@@ -1,13 +1,79 @@
 <template>
-  <div class="search">
-    <input type="text" v-model="title" />
-    <input type="text" v-model="pref" />
-    <input type="text" v-model="city" />
-    <button v-on:click="onclick">検索</button>
-    <p>{{ isbn }}</p>
-    <p>{{ book_info }}</p>
-    <p>{{ lib_info }}</p>
-    <p>{{ collection_info }}</p>
+  <div class="flex flex-col m-4">
+    <div class="w-3/5 mx-auto p-2 border border-solid rounded-lg shadow">
+      <h2 class="m-2 border-b text-xl">検索エリア</h2>
+      <div class="flex">
+        <h4 class="flex-1 m-2 p-1 text-gray-700">タイトル</h4>
+        <input
+          class="flex-1 m-2 p-1 border-gray-300 shadow"
+          type="text"
+          v-model="title"
+        />
+      </div>
+      <div class="flex">
+        <h4 class="flex-1 p-1 m-2 text-gray-700">都道府県</h4>
+        <input class="flex-1 p-1 m-2 shadow" type="text" v-model="pref" />
+      </div>
+      <div class="flex">
+        <h4 class="flex-1 p-1 m-2 text-gray-700">市町村区</h4>
+        <input class="flex-1 p-1 m-2 shadow" type="text" v-model="city" />
+      </div>
+      <button
+        class="
+          bg-green-500
+          hover:bg-green-700
+          text-white
+          font-bold
+          py-2
+          px-4
+          rounded
+        "
+        v-on:click="onclick"
+      >
+        検索
+      </button>
+    </div>
+    <div class="w-3/5 mx-auto p-2">
+      <div class="flex justify-between items-center flex-wrap">
+        <img class="flex1" v-bind:src="book_info.largeImageUrl" />
+        <div class="m-4 flex-1 text-left">
+          <div class="mt-62 text-sm text-gray-600">
+            <p>{{ book_info.author }}</p>
+          </div>
+          <h2 class="text-2xl">{{ book_info.title }}</h2>
+          <p>{{ book_info.publisherName }}</p>
+          <div class="mt-5">
+            <p>{{ book_info.itemCaption }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="w-3/5 mx-auto p-2">
+      <!-- <h2 class="m-2 border-b text-xl">蔵書検索</h2> -->
+      <div class="flex border-b">
+        <div class="pl-7 p-3 flex-1 text-left">
+          <p>図書館</p>
+        </div>
+        <div class="pl-7 p-3 flex-1 text-left">
+          <p>住所</p>
+        </div>
+        <div class="pl-7 p-3 flex-1 text-left">
+          <p>蔵書状況</p>
+        </div>
+      </div>
+      <div class="flex" v-for="(val, key) in collection_info" :key="key">
+        <div
+          class="pl-7 p-1 flex-1 text-left"
+          v-for="value in libs[key]"
+          :key="value"
+        >
+          <p>{{ value }}</p>
+        </div>
+        <div class="pl-7 p-1 flex-1 text-left">
+          <p>{{ val }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -19,13 +85,20 @@ export default {
   name: 'Home',
   data() {
     return {
-      book_info: '',
+      book_info: {
+        author: '著者',
+        title: 'タイトル',
+        itemCaption: 'キャプション',
+        publisherName: '出版社',
+        largeImageUrl: require('@/assets/book.png'),
+      }, //{},
       isbn: '',
-      title: '',
-      pref: '',
-      city: '',
-      lib_info: '',
-      collection_info: '',
+      title: '君の膵臓をたべたい',
+      pref: '熊本',
+      city: '熊本市',
+      libs: {},
+      lib_info: {},
+      collection_info: {},
       continue: 1,
     }
   },
@@ -38,7 +111,7 @@ export default {
             process.env.VUE_APP_RAKUTEN_KEY +
             '&title=' +
             this.title +
-            '&hits=30&page=1&sort=%2BreleaseDate'
+            '&hits=15&page=1&sort=%2BreleaseDate'
         )
         .then((response) => {
           this.json_books = response['data']
@@ -67,7 +140,7 @@ export default {
             this.pref +
             '&city=' +
             this.city +
-            '&limit=15&format=json&callback='
+            '&limit=20&format=json&callback='
         )
         .then((response) => {
           console.log(response)
@@ -79,6 +152,22 @@ export default {
               this.lib_sysid = this.lib_info.map((element) => {
                 return element['systemid']
               })
+              this.libs = this.lib_info.map((element) => {
+                return [
+                  element['libkey'],
+                  element['formal'],
+                  element['address'],
+                ]
+              })
+              //console.log(this.libs)
+              this.libs = this.libs.reduce(
+                (obj, [key, val1, val2]) =>
+                  Object.assign(obj, {
+                    [key]: [val1, val2], //{ formal: val1, address: val2 },
+                  }),
+                {}
+              )
+              console.log(this.libs)
               this.lib_sysid = Array.from(new Set(this.lib_sysid))
               this.lib_sysid = this.lib_sysid.join(',')
               this.params =
@@ -108,11 +197,29 @@ export default {
             )
             .then((respose) => {
               console.log(respose)
-              this.collection_info = respose['data']['books']
+              this.cf = respose['data']['books']
+              console.log(this.cf)
+              this.collection_info =
+                this.cf['9784575239058']['Kumamoto_Kumamoto']['libkey']
+              console.log(this.collection_info)
               this.status = respose['status']
               this.continue = respose['data']['continue']
               this.params =
                 '&session=' + respose['data']['session'] + '&format=json'
+              // if (this.continue === 1) {
+              //   this.collection_info = {
+              //     本館: '貸出中',
+              //     東部: '貸出可',
+              //     清水: '貸出中',
+              //     秋津: '貸出可',
+              //     花園: '貸出可',
+              //     天明: '貸出可',
+              //     とみあい: '貸出可',
+              //     プラザ: '貸出中',
+              //     植木: '貸出可',
+              //   }
+              // }
+
               this.continue = 0
               setTimeout(this.book_request, 6000)
             })
