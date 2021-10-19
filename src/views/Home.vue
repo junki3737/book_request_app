@@ -15,7 +15,7 @@
         <input class="flex-1 p-1 m-2 shadow" type="text" v-model="pref" />
       </div>
       <div class="flex">
-        <h4 class="flex-1 p-1 m-2 text-gray-700">市町村区</h4>
+        <h4 class="flex-1 p-1 m-2 text-gray-700">市区町村</h4>
         <input class="flex-1 p-1 m-2 shadow" type="text" v-model="city" />
       </div>
       <button
@@ -33,7 +33,7 @@
         検索
       </button>
     </div>
-    <div class="w-3/5 mx-auto p-2">
+    <div class="w-3/5 mx-auto p-2 pt-3">
       <div class="flex justify-between items-center flex-wrap">
         <img class="flex1" v-bind:src="book_info.largeImageUrl" />
         <div class="m-4 flex-1 text-left">
@@ -48,8 +48,7 @@
         </div>
       </div>
     </div>
-    <div class="w-3/5 mx-auto p-2">
-      <!-- <h2 class="m-2 border-b text-xl">蔵書検索</h2> -->
+    <div class="w-3/5 mx-auto p-2 pt-3">
       <div class="flex border-b">
         <div class="pl-7 p-3 flex-1 text-left">
           <p>図書館</p>
@@ -91,7 +90,7 @@ export default {
         itemCaption: 'キャプション',
         publisherName: '出版社',
         largeImageUrl: require('@/assets/book.png'),
-      }, //{},
+      },
       isbn: '',
       title: '君の膵臓をたべたい',
       pref: '熊本',
@@ -163,7 +162,7 @@ export default {
               this.libs = this.libs.reduce(
                 (obj, [key, val1, val2]) =>
                   Object.assign(obj, {
-                    [key]: [val1, val2], //{ formal: val1, address: val2 },
+                    [key]: [val1, val2],
                   }),
                 {}
               )
@@ -197,30 +196,26 @@ export default {
             )
             .then((respose) => {
               console.log(respose)
-              this.cf = respose['data']['books']
-              console.log(this.cf)
-              this.collection_info =
-                this.cf['9784575239058']['Kumamoto_Kumamoto']['libkey']
+              this.collection_info = respose['data']['books']
+              console.log(this.isbn)
+              console.log(this.lib_sysid)
+              this.collection_info = this.collection_info[this.isbn]
+              this.collection_info = this.collection_info[this.lib_sysid]
+              if ('libkey' in this.collection_info) {
+                this.collection_info = this.collection_info['libkey']
+                this.continue = 0
+                console.log('no continue')
+              } else {
+                this.continue = 1
+                console.log('continue')
+              }
               console.log(this.collection_info)
-              this.status = respose['status']
-              this.continue = respose['data']['continue']
-              this.params =
-                '&session=' + respose['data']['session'] + '&format=json'
-              // if (this.continue === 1) {
-              //   this.collection_info = {
-              //     本館: '貸出中',
-              //     東部: '貸出可',
-              //     清水: '貸出中',
-              //     秋津: '貸出可',
-              //     花園: '貸出可',
-              //     天明: '貸出可',
-              //     とみあい: '貸出可',
-              //     プラザ: '貸出中',
-              //     植木: '貸出可',
-              //   }
-              // }
+              //this.status = respose['status']
+              //this.continue = respose['data']['continue']
+              //this.params =
+              //  '&session=' + respose['data']['session'] + '&format=json'
 
-              this.continue = 0
+              //this.continue = 0
               setTimeout(this.book_request, 6000)
             })
         } else {
@@ -238,4 +233,18 @@ export default {
     },
   },
 }
+
+// if (this.continue === 1) {
+//   this.collection_info = {
+//     本館: '貸出中',
+//     東部: '貸出可',
+//     清水: '貸出中',
+//     秋津: '貸出可',
+//     花園: '貸出可',
+//     天明: '貸出可',
+//     とみあい: '貸出可',
+//     プラザ: '貸出中',
+//     植木: '貸出可',
+//   }
+// }
 </script>
