@@ -61,16 +61,7 @@
         </div>
       </div>
       <div class="flex" v-for="(val, key) in collection_info" :key="key">
-        <div class="pl-7 p-1 flex-1 text-left border border-solid">
-          <p>{{ libs.key[0] }}</p>
-        </div>
-        <div class="pl-7 p-1 flex-1 text-left border border-solid">
-          <a v-bind:href="map + libs.key[1]">{{ libs.key[1] }}</a>
-        </div>
-        <div class="pl-7 p-1 flex-1 text-left border border-solid">
-          <p>{{ val }}</p>
-        </div>
-        <!-- <div
+        <div
           class="pl-7 p-1 flex-1 text-left"
           v-for="value in libs[key]"
           :key="value"
@@ -81,7 +72,7 @@
         </div>
         <div class="pl-7 p-1 flex-1 text-left">
           <p>{{ val }}</p>
-        </div> -->
+        </div>
       </div>
     </div>
   </div>
