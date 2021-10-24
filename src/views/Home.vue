@@ -61,16 +61,27 @@
         </div>
       </div>
       <div class="flex" v-for="(val, key) in collection_info" :key="key">
-        <div
+        <div class="pl-7 p-1 flex-1 text-left border border-solid">
+          <p>{{ libs.key[0] }}</p>
+        </div>
+        <div class="pl-7 p-1 flex-1 text-left border border-solid">
+          <a v-bind:href="map + libs.key[1]">{{ libs.key[1] }}</a>
+        </div>
+        <div class="pl-7 p-1 flex-1 text-left border border-solid">
+          <p>{{ val }}</p>
+        </div>
+        <!-- <div
           class="pl-7 p-1 flex-1 text-left"
           v-for="value in libs[key]"
           :key="value"
         >
-          <p>{{ value }}</p>
+          <a class="text-blue-500" v-bind:href="map + value" target="_blank">{{
+            value
+          }}</a>
         </div>
         <div class="pl-7 p-1 flex-1 text-left">
           <p>{{ val }}</p>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -99,64 +110,30 @@ export default {
       lib_info: {},
       collection_info: {},
       continue: 1,
+      map: 'https://www.google.com/maps/search/?api=1&query=',
     }
   },
 
   methods: {
-    rakuten_request: function () {
-      axios
-        .get(
-          'https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?applicationId=' +
-            process.env.VUE_APP_RAKUTEN_KEY +
-            '&title=' +
-            this.title +
-            '&hits=15&page=1&sort=%2BreleaseDate'
-        )
-        .then((response) => {
-          this.json_books = response['data']
-          this.status = response['status']
-          console.log(response)
-          if (this.status == 200) {
-            if (response['hits'] != 0) {
-              this.book_info = this.json_books['Items'][0]['Item']
-              this.isbn = this.json_books['Items'][0]['Item']['isbn']
-              setTimeout(this.library_request, 6000)
-            } else {
-              this.book_info = '本がヒットしませんでした'
-            }
-          }
-        })
-        .catch(() => {
-          this.json_books = '取得に失敗しました。'
-        })
-    },
-    library_request: function () {
-      axios
-        .get(
-          'http://api.calil.jp/library?appkey=' +
-            process.env.VUE_APP_CALIL_KEY +
-            '&pref=' +
-            this.pref +
-            '&city=' +
-            this.city +
-            '&limit=20&format=json&callback='
-        )
-        .then((response) => {
-          console.log(response)
-          this.status = response['status']
-
-          if (this.status == 200) {
-            this.lib_info = response['data']
-            if (this.lib_info['length'] != 0) {
-              this.lib_sysid = this.lib_info.map((element) => {
-                return element['systemid']
+    async request() {
+      const response = await axios.get(
+        `https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?applicationId=${process.env.VUE_APP_RAKUTEN_KEY}&title=${this.title}&hits=15&page=1&sort=%2BreleaseDate`
+      )
+      if (response.status === 200) {
+        if (response.hits !== 0) {
+          this.book_info = response.data.Items[0].Item
+          this.isbn = response.data.Items[0].Item.isbn
+          const response2 = await axios.get(
+            `http://api.calil.jp/library?appkey=${process.env.VUE_APP_CALIL_KEY}&pref=${this.pref}&city=${this.city}&limit=20&format=json&callback=`
+          )
+          if (response2.status === 200) {
+            //this.lib_info = response2['data']
+            if (response2.data.length !== 0) {
+              this.lib_sysid = response2.data.map((element) => {
+                return element.systemid
               })
-              this.libs = this.lib_info.map((element) => {
-                return [
-                  element['libkey'],
-                  element['formal'],
-                  element['address'],
-                ]
+              this.libs = response2.data.map((element) => {
+                return [element.libkey, element.formal, element.address]
               })
               //console.log(this.libs)
               this.libs = this.libs.reduce(
@@ -169,55 +146,47 @@ export default {
               console.log(this.libs)
               this.lib_sysid = Array.from(new Set(this.lib_sysid))
               this.lib_sysid = this.lib_sysid.join(',')
-              this.params =
-                '&isbn=' +
-                this.isbn +
-                '&systemid=' +
-                this.lib_sysid +
-                '&format=json&callback=no'
+              this.params = `&isbn=${this.isbn}&systemid=${this.lib_sysid}&format=json&callback=no`
               this.continue = 1
-              setTimeout(this.book_request, 6000)
+              this.status = response2.status
+              setTimeout(this.book_request, 3000)
             } else {
-              this.lib_info = 'ヒット件０件でした'
+              // 図書館が一つもヒットしなかったとき
+              console.log()
             }
           } else {
-            this.lib_info = '取得に失敗しました'
+            // カーリル図書館APIの返り値が200以外のとき
+            console.log()
           }
-        })
+        } else {
+          // 本のヒット数が0のとき
+          console.log()
+        }
+      } else {
+        // 楽天APIの返り値が200以外のとき
+        console.log()
+      }
     },
-    book_request: function () {
+    async book_request() {
       if (this.status === 200) {
         if (this.continue === 1) {
-          axios
-            .get(
-              'http://api.calil.jp/check?appkey=' +
-                process.env.VUE_APP_CALIL_KEY +
-                this.params
-            )
-            .then((respose) => {
-              console.log(respose)
-              this.collection_info = respose['data']['books']
-              console.log(this.isbn)
-              console.log(this.lib_sysid)
-              this.collection_info = this.collection_info[this.isbn]
-              this.collection_info = this.collection_info[this.lib_sysid]
-              if ('libkey' in this.collection_info) {
-                this.collection_info = this.collection_info['libkey']
-                this.continue = 0
-                console.log('no continue')
-              } else {
-                this.continue = 1
-                console.log('continue')
-              }
-              console.log(this.collection_info)
-              //this.status = respose['status']
-              //this.continue = respose['data']['continue']
-              //this.params =
-              //  '&session=' + respose['data']['session'] + '&format=json'
-
-              //this.continue = 0
-              setTimeout(this.book_request, 6000)
-            })
+          let response3 = await axios.get(
+            `http://api.calil.jp/check?appkey=${process.env.VUE_APP_CALIL_KEY}${this.params}`
+          )
+          if (response3.status === 200) {
+            this.status == response3.status
+            this.collection_info =
+              response3.data.books[this.isbn][this.lib_sysid]
+            if ('libkey' in this.collection_info) {
+              this.collection_info = this.collection_info.libkey
+              this.continue = 0
+              console.log('no continue')
+            } else {
+              this.continue = 0 //1
+              console.log('continue')
+            }
+            setTimeout(this.book_request, 4000)
+          }
         } else {
           console.log('取得が終了しました')
         }
@@ -229,7 +198,7 @@ export default {
       console.log(this.title)
       console.log(this.pref)
       console.log(this.city)
-      this.rakuten_request()
+      this.request()
     },
   },
 }
