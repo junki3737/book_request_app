@@ -173,7 +173,7 @@ export default {
               this.continue = 0
               console.log('no continue')
             } else {
-              this.continue = 0 //1
+              this.continue = 1
               console.log('continue')
             }
             setTimeout(this.book_request, 4000)
