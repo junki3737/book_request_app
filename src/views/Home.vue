@@ -50,28 +50,50 @@
     </div>
     <div class="w-3/5 mx-auto p-2 pt-3">
       <div class="flex border-b">
-        <div class="pl-7 p-3 flex-1 text-left">
+        <div class="pl-14 p-3 flex-1 text-left">
           <p>図書館</p>
         </div>
-        <div class="pl-7 p-3 flex-1 text-left">
+        <div class="pl-12 p-3 flex-1 text-left">
           <p>住所</p>
         </div>
-        <div class="pl-7 p-3 flex-1 text-left">
+        <div class="pl-7 p-3 flex-initial text-left">
           <p>蔵書状況</p>
         </div>
       </div>
-      <div class="flex" v-for="(val, key) in collection_info" :key="key">
-        <div
-          class="pl-7 p-1 flex-1 text-left"
-          v-for="value in libs[key]"
-          :key="value"
-        >
-          <a class="text-blue-500" v-bind:href="map + value" target="_blank">{{
-            value
-          }}</a>
+      <div v-for="(val, key) in collection_info" :key="key">
+        <div v-if="val !== '貸出可'" class="flex bg-gray-300">
+          <div
+            class="pl-7 p-1 flex-1 text-left"
+            v-for="value in libs[key]"
+            :key="value"
+          >
+            <a
+              class="text-gray-600"
+              v-bind:href="map + value"
+              target="_blank"
+              >{{ value }}</a
+            >
+          </div>
+          <div class="pl-7 p-1 flex-initial text-left">
+            <p>{{ val }}</p>
+          </div>
         </div>
-        <div class="pl-7 p-1 flex-1 text-left">
-          <p>{{ val }}</p>
+        <div v-else class="flex">
+          <div
+            class="pl-7 p-1 flex-1 text-left"
+            v-for="value in libs[key]"
+            :key="value"
+          >
+            <a
+              class="text-blue-600"
+              v-bind:href="map + value"
+              target="_blank"
+              >{{ value }}</a
+            >
+          </div>
+          <div class="pl-7 p-1 flex-initial text-left">
+            <p>{{ val }}</p>
+          </div>
         </div>
       </div>
     </div>
