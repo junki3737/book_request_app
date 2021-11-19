@@ -1,5 +1,5 @@
 module.exports = {
-  assetsDir: 'static',
+  outputDir: 'functions/dist',
   pages: {
     index: {
       entry: 'src/main.js',

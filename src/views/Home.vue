@@ -61,7 +61,7 @@
         </div>
       </div>
       <div v-for="(val, key) in collection_info" :key="key">
-        <div v-if="val !== '貸出可'" class="flex bg-gray-300">
+        <div v-if="val !== '貸出可'" class="flex bg-gray-300 border-b">
           <div
             class="pl-7 p-1 flex-1 text-left"
             v-for="value in libs[key]"
@@ -78,7 +78,7 @@
             <p>{{ val }}</p>
           </div>
         </div>
-        <div v-else class="flex">
+        <div v-else class="flex border-b">
           <div
             class="pl-7 p-1 flex-1 text-left"
             v-for="value in libs[key]"
@@ -137,7 +137,7 @@ export default {
           this.book_info = response.data.Items[0].Item
           this.isbn = response.data.Items[0].Item.isbn
           const response2 = await axios.get(
-            `http://api.calil.jp/library?appkey=${process.env.VUE_APP_CALIL_KEY}&pref=${this.pref}&city=${this.city}&limit=20&format=json&callback=`
+            `https://api.calil.jp/library?appkey=${process.env.VUE_APP_CALIL_KEY}&pref=${this.pref}&city=${this.city}&limit=20&format=json&callback=`
           )
           if (response2.status === 200) {
             //this.lib_info = response2['data']
@@ -184,7 +184,7 @@ export default {
       if (this.status === 200) {
         if (this.continue === 1) {
           let response3 = await axios.get(
-            `http://api.calil.jp/check?appkey=${process.env.VUE_APP_CALIL_KEY}${this.params}`
+            `https://api.calil.jp/check?appkey=${process.env.VUE_APP_CALIL_KEY}${this.params}`
           )
           if (response3.status === 200) {
             this.status == response3.status
